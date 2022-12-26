@@ -1,4 +1,6 @@
-export default function Head() {
+import type { FC } from 'react';
+
+const Head: FC = () => {
   return (
     <>
       <title>Dubijos</title>
@@ -6,4 +8,6 @@ export default function Head() {
       <link rel="icon" href="/favicon.ico" />
     </>
   );
-}
+};
+
+export default Head;
