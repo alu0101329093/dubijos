@@ -1,6 +1,4 @@
-import type { ReactNode } from 'react';
-
-export default function Head(): ReactNode {
+export default function Head() {
   return (
     <>
       <title>Dubijos</title>

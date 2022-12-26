@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
-export default function Home(): ReactNode {
+export default function Home() {
   return <h1>Hello, Next.js!</h1>;
 }
