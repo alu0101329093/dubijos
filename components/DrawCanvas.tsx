@@ -19,7 +19,7 @@ const DrawCanvas: FC<DrawCanvasProps> = ({ clear, resetClear }) => {
       clearHandler();
       resetClear();
     }
-  });
+  }, [clear, clearHandler, resetClear]);
 
   return (
     <div
