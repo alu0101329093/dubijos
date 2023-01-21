@@ -11,10 +11,7 @@ export const useDraw = (
   parentRef: RefObject<HTMLDivElement>
 ): readonly [() => void] => {
   const [isDrawing, setIsDrawing] = useState<boolean>(false);
-  const [currentPosition, setCurrentPosition] = useState<Position>({
-    x: 0,
-    y: 0,
-  });
+  const [currentPosition, setCurrentPosition] = useState<Position>();
 
   const clear = (): void => {
     const canvas = canvasRef.current;
@@ -42,18 +39,19 @@ export const useDraw = (
     const parent = parentRef.current;
     if (canvas == null || parent == null) return;
 
-    const context = canvas.getContext('2d');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
     if (context == null) return;
 
-    context.lineWidth = 5;
+    const pixelRatio = window.devicePixelRatio;
+
+    context.lineWidth = 15;
+    context.lineCap = 'round';
+    context.setTransform(2 / pixelRatio, 0, 0, 2 / pixelRatio, 0, 0);
 
     const computePointInCanvas = (event: MouseEvent): Position | undefined => {
-      const canvas = canvasRef.current;
-      if (canvas == null) return;
-
-      const rect = canvas.getBoundingClientRect();
-      const x = event.clientX - rect.left;
-      const y = event.clientY - rect.top;
+      const transform = context.getTransform();
+      const x = (event.offsetX - transform.e) / transform.a;
+      const y = (event.offsetY - transform.f) / transform.d;
 
       return { x, y };
     };
@@ -63,21 +61,21 @@ export const useDraw = (
       if (canvas.width === width && canvas.height === height) return;
 
       const image = context.getImageData(0, 0, canvas.width, canvas.height);
-      // TODO: Check pixel ratio use
-      // const pixelRatio = window.devicePixelRatio;
-      // canvas.width = width * pixelRatio;
-      // canvas.height = height * pixelRatio;
       canvas.width = width;
       canvas.height = height;
-      // context.scale(pixelRatio, pixelRatio);
+      // canvas.width = Math.round(width / 4) * 4;
+      // canvas.width = Math.round(height / 4) * 4;
+      // canvas.height = Math.round(height / 4) * 4;
       context.putImageData(image, 0, 0);
+
+      setCurrentPosition(undefined);
     };
 
     const mouseDownHandler = (event: MouseEvent): void => {
       setIsDrawing(true);
       const newPosition = computePointInCanvas(event);
       if (newPosition == null) return;
-
+      console.log('Change position...');
       setCurrentPosition(newPosition);
     };
 
@@ -86,7 +84,7 @@ export const useDraw = (
     };
 
     const mouseMoveHandler = (event: MouseEvent): void => {
-      if (!isDrawing) return;
+      if (!isDrawing || currentPosition == null) return;
 
       context.beginPath();
       context.moveTo(currentPosition.x, currentPosition.y);

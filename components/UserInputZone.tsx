@@ -13,7 +13,7 @@ const UserInputZone: FC = () => {
 
   const resetClearHandler = (): void => setClear(false);
 
-  const predictClickHandler = (): void => {};
+  const predictClickHandler = (): void => setPredict(true);
 
   const resetPredictHandler = (): void => setPredict(false);
 
