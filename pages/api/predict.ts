@@ -4,7 +4,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 // Import @tensorflow/tfjs-core
 
 interface Data {
-  prediction: string;
+  name: string;
 }
 
 export default function handler(

@@ -1,6 +1,5 @@
 'use client';
 
-// import '@tensorflow/tfjs-backend-cpu';
 import * as tf from '@tensorflow/tfjs';
 import type { FC } from 'react';
 import { useEffect, useRef } from 'react';
@@ -36,44 +35,82 @@ const DrawCanvas: FC<DrawCanvasProps> = ({
 
   useEffect(() => {
     if (predict) {
-      console.log(`Predict...`);
       const canvas = canvasRef.current;
       if (canvas == null) return;
       const context = canvas.getContext('2d');
       if (context == null) return;
 
       const tryPrediction = async (): Promise<void> => {
+        const getDrawZone = (imgData: ImageData): ImageData => {
+          const size = canvas.width * canvas.height * 4;
+          let minWidth = 0;
+          let minHeight = 0;
+          let maxWidth = canvas.width;
+          let maxHeight = canvas.height;
+
+          for (let i = 3; i < size; i += 4) {
+            if (imageData.data[i] !== 0) {
+              minHeight = Math.floor(i / (canvas.width * 4));
+              break;
+            }
+          }
+
+          for (let i = size - 1; i > 0; i -= 4) {
+            if (imageData.data[i] !== 0) {
+              maxHeight = Math.floor(i / (canvas.width * 4));
+              break;
+            }
+          }
+
+          for (let i = 0; i < canvas.width; ++i) {
+            for (let j = 0; j < canvas.height; ++j) {
+              if (imageData.data[i * 4 + 3 + j * canvas.width * 4] !== 0) {
+                minWidth = i;
+                break;
+              }
+            }
+            if (minWidth !== 0) break;
+          }
+
+          for (let i = canvas.width - 1; i >= 0; --i) {
+            for (let j = canvas.height - 1; j >= 0; --j) {
+              if (imageData.data[i * 4 + 3 + j * canvas.width * 4] !== 0) {
+                maxWidth = i;
+                break;
+              }
+            }
+            if (maxWidth !== canvas.width) break;
+          }
+
+          return context.getImageData(
+            minWidth,
+            minHeight,
+            maxWidth - minWidth,
+            maxHeight - minHeight
+          );
+        };
+
         const preprocess = (imgData: ImageData): tf.Tensor<tf.Rank> => {
+          const drawData = getDrawZone(imgData);
           const imageData = new ImageData(
-            imgData.data.map((value, index) => {
-              if (index % 4 === 3) return 0;
-              if (imgData.data[(Math.floor(index / 4) + 1) * 4 - 1] === 0)
+            drawData.data.map((value, index) => {
+              if (drawData.data[(Math.floor(index / 4) + 1) * 4 - 1] === 0)
                 return 255;
               return value;
             }),
-            imgData.width,
-            imgData.height
+            drawData.width,
+            drawData.height
           );
-          // const imageData = imgData;
-          const tensor = tf.browser.fromPixels(imageData, 1);
-          // console.log(imageData.data);
-          // console.log(tensor.dataSync());
-          // console.log(
-          //   tf.image.resizeBilinear(tensor, [28, 28]).toFloat().dataSync()
-          // );
-          // tf.browser.toPixels(tensor, canvas);
-          const resized = tf.image.resizeBilinear(tensor, [28, 28]).toFloat();
+
+          const image = tf.browser.fromPixels(imageData, 1);
+
+          const resized = tf.image.resizeBilinear(image, [28, 28]).toFloat();
           const offset = tf.scalar(255.0);
           const normalized = tf.scalar(1.0).sub(resized.div(offset));
-          // tf.browser.toPixels(normalized, canvas).then(() => {
-          //   console.log(canvas.toDataURL());
-          // });
           const batched = normalized.expandDims(0);
           return batched;
         };
 
-        // console.log(`Width: ${canvas.width}`);
-        // console.log(`Height: ${canvas.height}`);
         const imageData = context.getImageData(
           0,
           0,
@@ -82,10 +119,7 @@ const DrawCanvas: FC<DrawCanvasProps> = ({
         );
         // context.putImageData(imageData, 0, 0);
 
-        // const imageBuffer = Buffer.from(imageData.data);
-
         const model = await tf.loadLayersModel('/model/model.json');
-        // console.log(preprocess(imageData).shape);
         const prediction = (
           model.predict(preprocess(imageData)) as tf.Tensor
         ).dataSync();
@@ -95,18 +129,10 @@ const DrawCanvas: FC<DrawCanvasProps> = ({
         //   body: imageBuffer,
         // });
 
-        // const prediction = await response.json();
-        const array = [];
-        for (let i = 0; i < prediction.length; ++i) {
-          array.push({ className: classNames[i], value: prediction[i] });
-        }
-        console.log(array.sort((a, b) => b.value - a.value).slice(0, 5));
-        // console.log(tf.argMax(prediction).dataSync()[0]);
         setPrediction(classNames[tf.argMax(prediction).dataSync()[0]]);
       };
 
       tryPrediction().catch(null);
-      // TODO: Try to predict using model
       resetPredict();
     }
   }, [predict, resetPredict, setPrediction]);

@@ -75,7 +75,6 @@ export const useDraw = (
       setIsDrawing(true);
       const newPosition = computePointInCanvas(event);
       if (newPosition == null) return;
-      console.log('Change position...');
       setCurrentPosition(newPosition);
     };
 

@@ -30,7 +30,7 @@ const UserInputZone: FC = () => {
         This is {prediction}
       </span>
       <div className="flex w-7/12 justify-center text-3xl font-semibold">
-        <OptionButton>Import</OptionButton>
+        <OptionButton>Classes</OptionButton>
         <OptionButton onClick={predictClickHandler}>Predict</OptionButton>
         <OptionButton onClick={clearClickHandler}>Clear</OptionButton>
       </div>
