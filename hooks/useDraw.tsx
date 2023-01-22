@@ -23,17 +23,6 @@ export const useDraw = (
     context.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  // TODO: Insert image in canvas
-  // const insertImage = (): void => {
-  //   const canvas = canvasRef.current;
-  //   if (canvas == null) return;
-
-  //   const context = canvas.getContext('2d');
-  //   if (context == null) return;
-
-  //   context.putImageData(image, 0, 0);
-  // };
-
   useEffect(() => {
     const canvas = canvasRef.current;
     const parent = parentRef.current;
@@ -48,7 +37,7 @@ export const useDraw = (
     context.lineCap = 'round';
     context.setTransform(2 / pixelRatio, 0, 0, 2 / pixelRatio, 0, 0);
 
-    const computePointInCanvas = (event: MouseEvent): Position | undefined => {
+    const computePointInCanvas = (event: MouseEvent): Position => {
       const transform = context.getTransform();
       const x = (event.offsetX - transform.e) / transform.a;
       const y = (event.offsetY - transform.f) / transform.d;
@@ -63,9 +52,6 @@ export const useDraw = (
       const image = context.getImageData(0, 0, canvas.width, canvas.height);
       canvas.width = width;
       canvas.height = height;
-      // canvas.width = Math.round(width / 4) * 4;
-      // canvas.width = Math.round(height / 4) * 4;
-      // canvas.height = Math.round(height / 4) * 4;
       context.putImageData(image, 0, 0);
 
       setCurrentPosition(undefined);
@@ -73,22 +59,21 @@ export const useDraw = (
 
     const mouseDownHandler = (event: MouseEvent): void => {
       setIsDrawing(true);
-      const newPosition = computePointInCanvas(event);
-      if (newPosition == null) return;
-      setCurrentPosition(newPosition);
     };
 
     const mouseUpHandler = (): void => {
       setIsDrawing(false);
+      setCurrentPosition(undefined);
     };
 
     const mouseMoveHandler = (event: MouseEvent): void => {
-      if (!isDrawing || currentPosition == null) return;
+      if (!isDrawing) return;
+      if (currentPosition == null)
+        return setCurrentPosition(computePointInCanvas(event));
 
       context.beginPath();
       context.moveTo(currentPosition.x, currentPosition.y);
       const newPosition = computePointInCanvas(event);
-      if (newPosition == null) return;
       context.lineTo(newPosition.x, newPosition.y);
       context.stroke();
       setCurrentPosition(newPosition);
