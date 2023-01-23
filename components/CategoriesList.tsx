@@ -20,7 +20,7 @@ const CategoriesList: FC<CategoriesListProps> = ({ resetShowCategories }) => {
           Categories to Draw
         </h1>
         <ol className="flex h-5/6 flex-wrap items-center justify-around">
-          {classNames.sort().map((value, index) => (
+          {[...classNames].sort().map((value, index) => (
             <Category key={index} name={value}></Category>
           ))}
         </ol>

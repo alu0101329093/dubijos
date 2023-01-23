@@ -124,6 +124,7 @@ const DrawCanvas: FC<DrawCanvasProps> = ({
         ).dataSync();
 
         setPrediction(classNames[tf.argMax(prediction).dataSync()[0]]);
+        console.log(classNames);
       };
 
       tryPrediction().catch(console.error);
