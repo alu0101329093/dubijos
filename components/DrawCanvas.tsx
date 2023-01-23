@@ -117,22 +117,16 @@ const DrawCanvas: FC<DrawCanvasProps> = ({
           canvas.width,
           canvas.height
         );
-        // context.putImageData(imageData, 0, 0);
 
         const model = await tf.loadLayersModel('/model/model.json');
         const prediction = (
           model.predict(preprocess(imageData)) as tf.Tensor
         ).dataSync();
 
-        // const response = await fetch('/api/predict', {
-        //   method: 'POST',
-        //   body: imageBuffer,
-        // });
-
         setPrediction(classNames[tf.argMax(prediction).dataSync()[0]]);
       };
 
-      tryPrediction().catch(null);
+      tryPrediction().catch(console.error);
       resetPredict();
     }
   }, [predict, resetPredict, setPrediction]);

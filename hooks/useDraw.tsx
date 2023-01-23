@@ -58,16 +58,20 @@ export const useDraw = (
     };
 
     const mouseDownHandler = (event: MouseEvent): void => {
+      if (event.button !== 0) return;
+
       setIsDrawing(true);
     };
 
-    const mouseUpHandler = (): void => {
+    const mouseUpHandler = (event: MouseEvent): void => {
+      if (event.button !== 0) return;
+
       setIsDrawing(false);
       setCurrentPosition(undefined);
     };
 
     const mouseMoveHandler = (event: MouseEvent): void => {
-      if (!isDrawing) return;
+      if (!isDrawing || event.button !== 0) return;
       if (currentPosition == null)
         return setCurrentPosition(computePointInCanvas(event));
 
